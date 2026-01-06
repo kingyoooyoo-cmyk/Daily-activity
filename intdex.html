@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Habit Tracker Dashboard</title>
+<style>
+/* عام */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Cairo", sans-serif;
+  background: #f4f7fb;
+  color: #111;
+  transition: background 0.3s, color 0.3s;
+}
+header {
+  background: #0ea5e9;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: bold;
+}
+.container {
+  width: 90%;
+  margin: 30px auto;
+}
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  transition: background 0.3s, color 0.3s;
+}
+h2 { margin-top:0; color:#333; }
+.add-box { display:flex; gap:10px; margin-bottom:20px; }
+input[type="text"] {
+  flex:1; padding:12px; border-radius:10px; border:1px solid #ccc;
+}
+button {
+  padding:12px 18px; border:none; border-radius:10px; background:#0ea5e9;
+  color:#fff; font-size:16px; cursor:pointer; transition: transform 0.2s;
+}
+button:hover { transform: scale(1.05); }
+table {
+  width:100%; border-collapse:collapse; margin-top:20px;
+}
+th, td { padding:12px; border-bottom:1px solid #e0e0e0; text-align:center; }
+th { background:#e8f5ff; color:#222; transition: background 0.3s, color 0.3s; }
+.progress-bar {
+  width:100%; height:12px; background:#dbeafe; border-radius:10px; margin-top:5px;
+}
+.progress-fill {
+  height:100%; background:#0ea5e9; border-radius:10px; width:0%; transition: width 0.3s ease;
+}
+.circle {
+  width:120px; height:120px; border-radius:50%;
+  border:10px solid #dbeafe; border-top-color:#0ea5e9;
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; font-weight:bold; margin:auto;
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+/* الصورة الدائرية مع Hover و Progress */
+.circle-week-img {
+  width:120px; height:120px; border-radius:50%;
+  position:relative; overflow:hidden;
+  background: conic-gradient(#34d399 0deg, #dbeafe 0deg 360deg);
+  transition: transform 0.3s ease;
+  cursor:pointer; margin:auto;
+}
+.circle-week-img:hover { transform: scale(1.15); }
+.circle-week-img img {
+  width:100%; height:100%; object-fit:cover; border-radius:50%; display:block;
+}
+.footer-text { text-align:center; margin-top:8px; font-weight:bold; color:#0ea5e9; transition: color 0.3s; }
+footer { text-align:center; margin:40px 0 20px 0; font-size:18px; color:#0ea5e9; font-weight:bold; transition: color 0.3s; }
+
+/* Dark Mode */
+body.dark {
+  background:#1f2937;
+  color:#f4f7fb;
+}
+body.dark .card { background:#374151; color:#f4f7fb; }
+body.dark th { background:#16a34a; color:#f4f7fb; }
+body.dark td { background:#ffffff; color:#111; }
+body.dark .progress-bar { background:#e6f0dc; } /* خلفية خفيفة */
+body.dark .progress-fill { background:#6b8e23; } /* أخضر زيتوني هادي */
+body.dark .footer-text,
+body.dark footer { color:#0ea5e9; } /* سماوي غامق */
+
+/* زر Dark Mode */
+#darkModeBtn {
+  font-size:20px;
+  background:none; border:none; cursor:pointer;
+  transition: transform 0.3s ease;
+  margin-left:5px;
+}
+#darkModeBtn:hover { transform: scale(1.2); }
+#darkModeBtn::before { content: '☀️'; color:#facc15; }
+body.dark #darkModeBtn::before { content:'🌙'; color:#facc15; }
+
+</style>
+</head>
+<body>
+<header>Daily activity with youssef 🚀</header>
+
+<div class="container">
+  <div class="card">
+    <h2>أضف عادة جديدة</h2>
+    <div class="add-box">
+      <input type="text" id="habitInput" placeholder="اكتب اسم العادة هنا..." />
+      <button onclick="addHabit()">إضافة</button>
+      <button onclick="resetHabits()" style="background:#f87171;">Reset</button>
+      <button id="darkModeBtn" title="Toggle Dark Mode"></button>
+    </div>
+
+    <!-- جدول العادات -->
+    <table id="habitTable">
+      <tr>
+        <th>العادة</th>
+        <th>السبت</th>
+        <th>الأحد</th>
+        <th>الاثنين</th>
+        <th>الثلاثاء</th>
+        <th>الأربعاء</th>
+        <th>الخميس</th>
+        <th>الجمعة</th>
+        <th>النسبة</th>
+      </tr>
+    </table>
+
+    <h2>التقدم الكلي</h2>
+    <div style="display:flex; gap:40px; justify-content:center; align-items:center; flex-wrap:wrap;">
+      <div class="circle" id="overallCircle">0%</div>
+
+      <!-- الصورة الدائرية مع النص -->
+      <div style="text-align:center;">
+        <div class="circle-week-img" id="weekCircle">
+          <img src="images/youssef.jpg" alt="Youssef" />
+        </div>
+        <div class="footer-text">Dev.YoussefSaleh</div>
+      </div>
+
+      <table style="width:250px; border-collapse:collapse; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.08); border-radius:12px;">
+        <tr><th>اليوم</th><th>التقدم</th></tr>
+        <tr><td>السبت</td><td id="satP">0%</td></tr>
+        <tr><td>الأحد</td><td id="sunP">0%</td></tr>
+        <tr><td>الاثنين</td><td id="monP">0%</td></tr>
+        <tr><td>الثلاثاء</td><td id="tueP">0%</td></tr>
+        <tr><td>الأربعاء</td><td id="wedP">0%</td></tr>
+        <tr><td>الخميس</td><td id="thuP">0%</td></tr>
+        <tr><td>الجمعة</td><td id="friP">0%</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="text-align:center">مخطط تقدم الأيام</h2>
+    <div style="width:90%;margin:auto;">
+      <div style="margin:10px 0;">السبت <div class='progress-bar'><div id='satBar' class='progress-fill'></div></div></div>
+      <div style="margin:10px 0;">الأحد <div class='progress-bar'><div id='sunBar' class='progress-fill'></div></div></div>
+      <div style="margin:10px 0;">الاثنين <div class='progress-bar'><div id='monBar' class='progress-fill'></div></div></div>
+      <div style="margin:10px 0;">الثلاثاء <div class='progress-bar'><div id='tueBar' class='progress-fill'></div></div></div>
+      <div style="margin:10px 0;">الأربعاء <div class='progress-bar'><div id='wedBar' class='progress-fill'></div></div></div>
+      <div style="margin:10px 0;">الخميس <div class='progress-bar'><div id='thuBar' class='progress-fill'></div></div></div>
+      <div style="margin:10px 0;">الجمعة <div class='progress-bar'><div id='friBar' class='progress-fill'></div></div></div>
+    </div>
+  </div>
+</div>
+
+<footer>استمر ولا تتوقف! كل يوم تقدمه خطوة نحو هدفك 💪</footer>
+
+<script>
+const darkBtn = document.getElementById('darkModeBtn');
+darkBtn.addEventListener('click', () => { document.body.classList.toggle('dark'); });
+
+function addHabit() {
+  let habit = document.getElementById('habitInput').value.trim();
+  if(!habit) return;
+  let table = document.getElementById('habitTable');
+  let row = table.insertRow();
+  let cellName = row.insertCell(); cellName.innerHTML = habit;
+  for(let i=0;i<7;i++){
+    let cell=row.insertCell();
+    let checkbox=document.createElement('input'); checkbox.type='checkbox';
+    checkbox.onclick=updateProgress; cell.appendChild(checkbox);
+  }
+  let cellProgress=row.insertCell(); cellProgress.innerHTML="0%";
+  document.getElementById('habitInput').value="";
+  updateProgress();
+}
+
+function resetHabits(){
+  let table = document.getElementById('habitTable');
+  let rows = table.rows;
+  for(let r=1;r<rows.length;r++){
+    let tds = rows[r].cells;
+    for(let c=1;c<=7;c++){ if(tds[c].children[0]) tds[c].children[0].checked=false; }
+    tds[8].innerHTML="0%";
+  }
+  updateProgress();
+}
+
+function updateProgress(){
+  let table = document.getElementById('habitTable');
+  let rows = table.rows;
+  let totalAll=0, doneAll=0;
+  const dayTotals=[0,0,0,0,0,0,0], dayChecks=[0,0,0,0,0,0,0];
+  for(let r=1;r<rows.length;r++){
+    let tds = rows[r].cells;
+    let habitChecks=0;
+    for(let c=1;c<=7;c++){
+      dayTotals[c-1]++;
+      if(tds[c].children[0]?.checked){ dayChecks[c-1]++; habitChecks++; doneAll++; }
+      totalAll++;
+    }
+    tds[8].innerHTML=((habitChecks/7)*100).toFixed(1)+"%";
+  }
+  let overall=((doneAll/totalAll)*100)||0;
+  document.getElementById('overallCircle').innerHTML=overall.toFixed(1)+"%";
+  document.getElementById('weekCircle').style.background=`conic-gradient(#34d399 0deg ${(overall/100)*360}deg, #dbeafe ${(overall/100)*360}deg 360deg)`;
+  const dayIds=["sat","sun","mon","tue","wed","thu","fri"];
+  dayIds.forEach((d,i)=>{
+    let percent=((dayChecks[i]/dayTotals[i])*100)||0;
+    document.getElementById(d+"P").innerText=percent.toFixed(1)+"%";
+    document.getElementById(d+"Bar").style.width=percent+"%";
+  });
+}
+
+setInterval(updateProgress,500);
+</script>
+</body>
+</html>
